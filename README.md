@@ -1,5 +1,137 @@
 # 🚦 Netvox RA02G Sensitivity Configuration Cheat Sheet
 
+# RA02G Reporting Interval Configuration Reference
+
+## 🔧 Shortest Possible Reporting Interval (for diagnostics)
+
+The **shortest possible reporting interval** you can configure for the RA02G is:
+
+- **MinTime = 0x0001 (1 second)**
+- **MaxTime = 0x0001 (1 second)**
+
+> ⚠️ **WARNING:** The manual explicitly does **not recommend** setting such a low interval due to **battery drain risk** — even with external power. However, if you're troubleshooting why a device has stopped reporting, it's acceptable to use for **brief diagnostics** only.
+
+---
+
+### ✅ Downlink Payload for Shortest Report Interval
+
+To configure the minimum report interval via downlink, use:
+
+- **Hex:** `01D7000100010000000000`
+- **Base64:** `AdcAAQABAAAAAAA=`
+- **FPort:** `7`
+
+This sets:
+
+- `MinTime = 0x0001` (1 second)
+- `MaxTime = 0x0001` (1 second)
+
+---
+
+### ⚙️ How to Send This
+
+Use your LNS (e.g., ChirpStack or IoTCommunity.Space) to enqueue this payload to the device on **FPort 7** as a **confirmed downlink**.
+
+---
+
+### ❗ If Still Not Reporting After This
+
+- ✅ Verify the device is **still joined** to the network
+- ✅ Use the **Rejoin Command** (FPort `0x20`):
+
+    - **Hex:** `010000003C03`
+    - **Base64:** `AQAAADwD`
+    - **FPort:** `32` (hex 0x20)
+
+Or press **Function Key ①** to manually force a rejoin (green LED should flash once).
+
+---
+
+Let us know if you want a **full diagnostic downlink bundle** (e.g., rejoin + interval + smoke debounce override).
+
+---
+
+## 🟢 Recommended Configuration (Manufacturer Default)
+
+The **best recommended reporting interval** for the RA02G—according to the manufacturer’s balance of reliability and power consumption—is:
+
+### ✅ Recommended (Default) Interval
+
+- **MinTime = 0x0384 (900 seconds = 15 minutes)**
+- **MaxTime = 0x0384 (900 seconds = 15 minutes)**
+
+This means:
+
+- The device **wakes up every 15 minutes**
+- Reports are sent **even if no change occurs**
+
+---
+
+### 🟢 Recommended Downlink Payload
+
+- **Hex:** `01D7038403840000000000`
+- **Base64:** `AdcDhAOEAAAAAAA=`
+- **FPort:** `7`
+
+---
+
+### 📋 Why This Setting Is Recommended
+
+| Parameter   | Value        | Purpose                                         |
+|-------------|--------------|--------------------------------------------------|
+| **MinTime** | 900 seconds  | Minimum interval between change-triggered reports |
+| **MaxTime** | 900 seconds  | Maximum interval for sending heartbeat reports   |
+| **Battery Impact** | Low  | Suitable for 24/7 operation, even on backup battery |
+
+---
+
+## 🛠️ Additional Recommended Downlinks
+
+To fully apply manufacturer defaults and ensure stable behavior:
+
+### 1. 🕒 Set MinTime & MaxTime to 15 min
+- **Hex:** `01D7038403840000000000`
+- **Base64:** `AdcDhAOEAAAAAAA=`
+- **FPort:** `7`
+
+### 2. 🚬 Set SmokeDebounceTime = 300s, ResumeTime = 10s
+- **Hex:** `0CD7012C0A000000000000`
+- **Base64:** `DNcBLAoAAAAAAA==`
+- **FPort:** `7`
+
+### 3. 🔊 Set Smoke Sensitivity to Level 1 (Highest)
+- **Hex:** `03D7010000000000000000`
+- **Base64:** `A9cBAAAAAAAAAA==`
+- **FPort:** `7`  
+(Optional: Use `0x02`, `0x03`, etc., for lower sensitivity)
+
+---
+
+### 🔄 Rejoin (Optional - if device not responding)
+
+- **Hex:** `0100000E1003`
+- **Base64:** `AQAAChAD`
+- **FPort:** `32` (0x20)
+
+> Forces device to check and rejoin the network every 1 hour, after 3 failed attempts.
+
+---
+
+### ⏱️ Recommended Send Order
+
+1. MinTime/MaxTime (Heartbeat)
+2. Smoke Debounce + Resume Time
+3. Smoke Sensitivity (if needed)
+4. Rejoin command (only for disconnected devices)
+
+---
+
+Let us know if you'd like a **batch-downlink file** or **server-side script** to enqueue these automatically.
+
+
+------------------------------------------------------
+
+
 ## 1️⃣ SMOKE Sensitivity
 
 ### **Set SMOKE Sensitivity**
